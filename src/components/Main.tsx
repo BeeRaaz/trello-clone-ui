@@ -15,8 +15,16 @@ function Main() {
   const selectedBoard: Board | undefined = state.boards.find(
     (board: Board) => board.id === state.selectedBoardId
   );
+  
+  if (!selectedBoard) {
+    return (
+      <main>
+        <p>No board selected!</p>
+      </main>
+    )
+  };
 
-  const boardId = selectedBoard?.id;
+  const boardId = selectedBoard.id;
 
   const handleAddList = (e: React.FormEvent) => {
     e.preventDefault();
