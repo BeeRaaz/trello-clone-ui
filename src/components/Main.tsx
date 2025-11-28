@@ -12,7 +12,7 @@ function Main() {
   const [showForm, setShowForm] = useState(false);
   const [newListTitle, setNewListTitle] = useState("");
 
-  const selectedBoard: Board = state.boards.find(
+  const selectedBoard: Board | undefined = state.boards.find(
     (board: Board) => board.id === state.selectedBoardId
   );
 
