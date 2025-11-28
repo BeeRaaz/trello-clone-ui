@@ -1,7 +1,12 @@
-import { createContext, useContext, useReducer } from "react";
+import { createContext, useContext, useEffect, useReducer } from "react";
 import type { BoardAction, BoardState } from "../types/types";
 
-const BoardContext = createContext<any | null>(null);
+interface BoardContextType {
+  state: BoardState;
+  dispatch: React.Dispatch<BoardAction>;
+}
+
+const BoardContext = createContext<BoardContextType | null>(null);
 
 // const initialBoardState: BoardState = {
 //   boards: [],
@@ -135,7 +140,10 @@ function boardReducer(state: BoardState, action: BoardAction): BoardState {
         boards: state.boards.map((board) => {
           if (board.id === action.payload.boardId) {
             const newLists = [...board.lists];
-            const [removedList] = newLists.splice(action.payload.sourceIndex, 1);
+            const [removedList] = newLists.splice(
+              action.payload.sourceIndex,
+              1,
+            );
             newLists.splice(action.payload.destinationIndex, 0, removedList);
             return {
               ...board,
@@ -162,9 +170,9 @@ function boardReducer(state: BoardState, action: BoardAction): BoardState {
               // Destination list: add the task
               if (list.id === action.payload.destinationListId) {
                 const newTasks = [...list.tasks];
-                const task = board.lists
-                  .find((l) => l.id === action.payload.sourceListId)
-                  ?.tasks[action.payload.sourceIndex];
+                const task = board.lists.find(
+                  (l) => l.id === action.payload.sourceListId,
+                )?.tasks[action.payload.sourceIndex];
                 if (task) {
                   newTasks.splice(action.payload.destinationIndex, 0, task);
                 }
@@ -182,7 +190,20 @@ function boardReducer(state: BoardState, action: BoardAction): BoardState {
 }
 
 function BoardProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(boardReducer, initialBoardState);
+  // load from localStorage
+  const storedState: string = localStorage.getItem("boardState") as string;
+  
+  const parsedStoredState = JSON.parse(storedState);
+
+  const [state, dispatch] = useReducer(
+    boardReducer,
+    parsedStoredState ?? initialBoardState
+  );
+
+  // save to localStorage on every state update
+  useEffect(() => {
+    localStorage.setItem("boardState", JSON.stringify(state));
+  }, [state]);
 
   return (
     <BoardContext.Provider value={{ state, dispatch }}>

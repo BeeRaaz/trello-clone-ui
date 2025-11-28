@@ -14,7 +14,7 @@ function Button({
     <button
       {...props}
       className={`cursor-pointer ${
-        fullWidth ? "flex" : "inline-flex"
+        fullWidth ? "flex w-full" : "inline-flex"
       } justify-center items-center gap-3 py-2 px-4 rounded-md font-medium text-md bg-slate-300 ${className}`}
     >
       {children}

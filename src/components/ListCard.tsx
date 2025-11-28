@@ -86,7 +86,7 @@ function ListCard({ board, list, tasks = [] }: ListProps) {
                 placeholder="Add task"
                 value={newTaskTitle}
                 onChange={(e) => setNewTaskTitle(e.target.value)}
-                className="border py-1 px-2 rounded-sm focus:outline-none"
+                className="border py-1 px-2 rounded-sm focus:outline-none w-full"
               />
               <div className="flex gap-3">
                 <Button type="submit">Add</Button>

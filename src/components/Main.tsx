@@ -65,7 +65,7 @@ function Main() {
   };
 
   return (
-    <main className="flex-1 p-5 flex flex-wrap gap-5 h-full">
+    <main className="flex-1 p-5 flex gap-5 h-full w-full overflow-x-auto">
       {state.boards.length ? (
         !selectedBoard ? (
           <h3>Select a board to view its lists.</h3>
@@ -113,7 +113,7 @@ function Main() {
             </Droppable>
 
             {!showForm ? (
-              <div>
+              <div className="min-w-fit">
                 <Button onClick={() => setShowForm(true)}>
                   <Plus size={16} />
                   Add another list
