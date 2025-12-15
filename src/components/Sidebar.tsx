@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import Button from "./ui/Button";
 import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import { useBoard } from "../contexts/BoardContext";
+import { useToast } from "../contexts/ToastContext";
 import type { Board } from "../types/types";
 
 function Sidebar() {
@@ -9,6 +10,7 @@ function Sidebar() {
   const [showForm, setShowForm] = useState(false);
   const [newBoardTitle, setNewBoardTitle] = useState("");
   const { state, dispatch } = useBoard();
+  const { addToast } = useToast();
 
   const handleSelectBoard = (boardId: string) => {
     dispatch({ type: "SELECT_BOARD", payload: boardId });
@@ -16,8 +18,10 @@ function Sidebar() {
 
   const handleAddBoard = (e: FormEvent) => {
     e.preventDefault();
+    if (!newBoardTitle.trim()) return;
 
     dispatch({ type: "ADD_BOARD", payload: newBoardTitle });
+    addToast(`Board "${newBoardTitle}" created`, "success");
     setNewBoardTitle("");
     setShowForm(false);
   };
@@ -35,7 +39,7 @@ function Sidebar() {
         </Button>
       </div>
       {show && (
-        <div className="mt-4">
+        <div className="mt-4 space-y-4">
           <h3 className="font-semibold tracking-tighter text-lg mb-2">
             Your Boards
           </h3>
@@ -46,11 +50,10 @@ function Sidebar() {
                   {state.boards.map((board: Board) => (
                     <li key={board.id} className="w-full">
                       <Button
-                        className={`${
-                          state.selectedBoardId === board.id
-                            ? "cursor-not-allowed! bg-slate-200!"
-                            : ""
-                        }`}
+                        className={`${state.selectedBoardId === board.id
+                          ? "cursor-not-allowed! bg-slate-200!"
+                          : ""
+                          }`}
                         fullWidth={true}
                         onClick={() => handleSelectBoard(board.id)}
                       >
@@ -59,39 +62,40 @@ function Sidebar() {
                     </li>
                   ))}
                 </ul>
-
-                {!showForm ? (
-                  <div>
-                    <Button onClick={() => setShowForm(true)}>
-                      <Plus size={16} />
-                      Add board
-                    </Button>
-                  </div>
-                ) : (
-                  <form onSubmit={handleAddBoard} className="space-y-2">
-                    <label htmlFor="board-input" className="sr-only">
-                      Board
-                    </label>
-                    <input
-                      id="board-input"
-                      type="text"
-                      placeholder="Add Board"
-                      value={newBoardTitle}
-                      onChange={(e) => setNewBoardTitle(e.target.value)}
-                      className="border py-1 px-2 rounded-sm focus:outline-none w-full"
-                    />
-                    <div className="flex gap-3">
-                      <Button type="submit">Add</Button>
-                      <Button onClick={() => setShowForm(false)}>
-                        <X size={16} />
-                      </Button>
-                    </div>
-                  </form>
-                )}
               </div>
             </>
           ) : (
-            <p>No Boards Available.</p>
+            <>
+              <p>No Boards Available.</p>
+            </>
+          )}
+          {!showForm ? (
+            <div>
+              <Button onClick={() => setShowForm(true)}>
+                <Plus size={16} />
+                Add board
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={handleAddBoard} className="space-y-2">
+              <label htmlFor="board-input" className="sr-only">
+                Board
+              </label>
+              <input
+                id="board-input"
+                type="text"
+                placeholder="Add Board"
+                value={newBoardTitle}
+                onChange={(e) => setNewBoardTitle(e.target.value)}
+                className="border py-1 px-2 rounded-sm focus:outline-none w-full"
+              />
+              <div className="flex gap-3">
+                <Button type="submit">Add</Button>
+                <Button onClick={() => setShowForm(false)}>
+                  <X size={16} />
+                </Button>
+              </div>
+            </form>
           )}
         </div>
       )}

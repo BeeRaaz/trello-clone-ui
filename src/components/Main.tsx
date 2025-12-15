@@ -1,6 +1,7 @@
 import { Plus, X } from "lucide-react";
 import Button from "./ui/Button";
 import { useBoard } from "../contexts/BoardContext";
+import { useToast } from "../contexts/ToastContext";
 import type { Board, List as ListType } from "../types/types";
 import ListCard from "./ListCard";
 import { useState } from "react";
@@ -9,13 +10,36 @@ import type { DropResult } from "@hello-pangea/dnd";
 
 function Main() {
   const { state, dispatch } = useBoard();
+  const { addToast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [newListTitle, setNewListTitle] = useState("");
 
   const selectedBoard: Board | undefined = state.boards.find(
     (board: Board) => board.id === state.selectedBoardId
   );
-  
+
+  // Loading state display
+  if (state.isLoading) {
+    return (
+      <main className="flex-1 p-5 flex gap-5 h-full w-full overflow-x-auto">
+        <div className="flex gap-5">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="py-2 px-4 h-64 rounded-md bg-slate-200 min-w-[272px] animate-pulse"
+            >
+              <div className="h-6 bg-slate-300 rounded w-3/4 mb-5"></div>
+              <div className="space-y-2">
+                <div className="h-12 bg-slate-300 rounded"></div>
+                <div className="h-12 bg-slate-300 rounded"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
+    );
+  }
+
   if (!selectedBoard) {
     return (
       <main>
@@ -31,6 +55,7 @@ function Main() {
     if (!newListTitle.trim()) return;
 
     dispatch({ type: "ADD_LIST", payload: { boardId, title: newListTitle } });
+    addToast(`List "${newListTitle}" added`, "success");
 
     setNewListTitle("");
     setShowForm(false);
@@ -40,7 +65,10 @@ function Main() {
     const { source, destination, type } = result;
 
     // If dropped outside a droppable area
-    if (!destination) return;
+    if (!destination) {
+      addToast("Drop cancelled - no valid destination", "warning");
+      return;
+    }
 
     // If dropped in the same position
     if (
@@ -51,6 +79,13 @@ function Main() {
     }
 
     if (type === "LIST") {
+      // Validate before dispatch
+      if (source.index < 0 || source.index >= selectedBoard.lists.length ||
+        destination.index < 0 || destination.index >= selectedBoard.lists.length) {
+        addToast("Invalid list position", "error");
+        return;
+      }
+
       dispatch({
         type: "REORDER_LISTS",
         payload: {
@@ -59,7 +94,21 @@ function Main() {
           destinationIndex: destination.index,
         },
       });
+      addToast("List reordered", "success");
     } else if (type === "TASK") {
+      const sourceList = selectedBoard.lists.find(l => l.id === source.droppableId);
+      const destList = selectedBoard.lists.find(l => l.id === destination.droppableId);
+
+      if (!sourceList || !destList) {
+        addToast("Invalid list for task move", "error");
+        return;
+      }
+
+      if (source.index < 0 || source.index >= sourceList.tasks.length) {
+        addToast("Invalid task position", "error");
+        return;
+      }
+
       dispatch({
         type: "MOVE_TASK",
         payload: {
@@ -69,6 +118,12 @@ function Main() {
           destinationIndex: destination.index,
         },
       });
+
+      if (source.droppableId === destination.droppableId) {
+        addToast("Task reordered", "success");
+      } else {
+        addToast(`Task moved to "${destList.title}"`, "success");
+      }
     }
   };
 
@@ -102,9 +157,8 @@ function Main() {
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className={`${
-                            snapshot.isDragging ? "opacity-50" : ""
-                          }`}
+                          className={`${snapshot.isDragging ? "opacity-50" : ""
+                            }`}
                         >
                           <ListCard
                             board={selectedBoard}

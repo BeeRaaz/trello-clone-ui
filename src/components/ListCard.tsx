@@ -4,6 +4,7 @@ import Button from "./ui/Button";
 import TaskCard from "./TaskCard";
 import { useState } from "react";
 import { useBoard } from "../contexts/BoardContext";
+import { useToast } from "../contexts/ToastContext";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 
 interface ListProps {
@@ -14,6 +15,7 @@ interface ListProps {
 
 function ListCard({ board, list, tasks = [] }: ListProps) {
   const { dispatch } = useBoard();
+  const { addToast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
 
@@ -28,6 +30,7 @@ function ListCard({ board, list, tasks = [] }: ListProps) {
       type: "ADD_TASK",
       payload: { boardId, listId, title: newTaskTitle },
     });
+    addToast(`Task "${newTaskTitle}" added to ${list.title}`, "success");
 
     setNewTaskTitle("");
     setShowForm(false);
@@ -40,9 +43,8 @@ function ListCard({ board, list, tasks = [] }: ListProps) {
         <Droppable droppableId={listId} type="TASK">
           {(provided, snapshot) => (
             <ul
-              className={`space-y-2 min-h-5 ${
-                snapshot.isDraggingOver ? "bg-slate-300 rounded p-1" : ""
-              }`}
+              className={`space-y-2 min-h-5 ${snapshot.isDraggingOver ? "bg-slate-300 rounded p-1" : ""
+                }`}
               ref={provided.innerRef}
               {...provided.droppableProps}
             >
@@ -57,9 +59,8 @@ function ListCard({ board, list, tasks = [] }: ListProps) {
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
-                      className={`${
-                        snapshot.isDragging ? "opacity-50" : ""
-                      }`}
+                      className={`${snapshot.isDragging ? "opacity-50" : ""
+                        }`}
                     >
                       <TaskCard task={task} />
                     </li>
